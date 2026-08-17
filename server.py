@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import os
-from datetime import datetime
 
 app = Flask(__name__)
 
@@ -29,12 +28,13 @@ def alexa():
 
     datos = request.get_json(silent=True)
 
-    print("\n========== ALEXA ==========")
+    print("========== ALEXA ==========")
     print("Petición recibida:", datos)
 
     if not datos:
         print("ERROR: No llegó JSON")
-        return jsonify({
+
+        respuesta = {
             "version": "1.0",
             "response": {
                 "outputSpeech": {
@@ -43,7 +43,9 @@ def alexa():
                 },
                 "shouldEndSession": True
             }
-        }), 200
+        }
+
+        return jsonify(respuesta), 200
 
     tipo = datos.get("request", {}).get("type")
 
@@ -51,7 +53,6 @@ def alexa():
 
     if tipo == "LaunchRequest":
         ultimo_comando = "LaunchRequest recibido"
-
         texto = "Hola. Control PC está conectado."
 
     elif tipo == "IntentRequest":
@@ -65,20 +66,17 @@ def alexa():
 
         if nombre_intent == "AbrirNotasIntent":
             texto = "Recibí la orden de abrir el bloc de notas."
-
         else:
             texto = f"Recibí el comando {nombre_intent}."
 
     elif tipo == "SessionEndedRequest":
 
         ultimo_comando = "Sesión terminada"
-
         return "", 200
 
     else:
 
         ultimo_comando = f"Tipo recibido: {tipo}"
-
         texto = "Solicitud recibida."
 
     respuesta = {
@@ -93,17 +91,11 @@ def alexa():
     }
 
     print("Respuesta enviada:", respuesta)
-    print("===========================\n")
+    print("==========================")
 
     return jsonify(respuesta), 200
 
 
 if __name__ == "__main__":
-
     puerto = int(os.environ.get("PORT", 10000))
-
-    app.run(
-        host="0.0.0.0",
-        port=puerto
-    )
-    )
+    app.run(host="0.0.0.0", port=puerto)
