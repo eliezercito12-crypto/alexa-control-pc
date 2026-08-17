@@ -5,32 +5,36 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def inicio():
-    return "Servidor Alexa funcionando"
+    return "Servidor Alexa funcionando", 200
 
 
 @app.route("/", methods=["POST"])
 def alexa():
-    datos = request.get_json(silent=True) or {}
 
-    print("Petición recibida de Alexa:")
+    datos = request.get_json(force=True)
+
+    print("========== PETICION DE ALEXA ==========")
     print(datos)
+    print("=======================================")
 
     request_data = datos.get("request", {})
-    tipo = request_data.get("type")
+    request_type = request_data.get("type")
 
-    if tipo == "LaunchRequest":
+    if request_type == "LaunchRequest":
         texto = "Hola. Control PC está conectado."
 
-    elif tipo == "IntentRequest":
-        intent = request_data.get("intent", {}).get("name")
+    elif request_type == "IntentRequest":
 
-        if intent == "AbrirNotasIntent":
+        intent_name = request_data.get("intent", {}).get("name")
+
+        if intent_name == "AbrirNotasIntent":
             texto = "Recibí la orden de abrir el bloc de notas."
 
-            # Aquí posteriormente enviaremos la orden a tu PC.
-
         else:
-            texto = "No conozco ese comando todavía."
+            texto = "No conozco ese comando."
+
+    elif request_type == "SessionEndedRequest":
+        return "", 200
 
     else:
         texto = "Solicitud recibida."
@@ -46,7 +50,10 @@ def alexa():
         }
     }
 
-    return jsonify(respuesta)
+    print("RESPUESTA:")
+    print(respuesta)
+
+    return jsonify(respuesta), 200
 
 
 if __name__ == "__main__":
@@ -54,6 +61,10 @@ if __name__ == "__main__":
 
     puerto = int(os.environ.get("PORT", 10000))
 
+    app.run(
+        host="0.0.0.0",
+        port=puerto
+    )
     app.run(
         host="0.0.0.0",
         port=puerto
